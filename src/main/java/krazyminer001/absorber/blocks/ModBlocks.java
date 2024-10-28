@@ -33,7 +33,7 @@ public class ModBlocks {
     private static Item registerBlockItem(String name, Block block) {
         RegistryKey<Item> key = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(TheAbsorber.ModID, name));
         return Registry.register(Registries.ITEM, key.getValue(),
-                new BlockItem(block, new Item.Settings().registryKey(key)));
+                new BlockItem(block, new Item.Settings().registryKey(key).useBlockPrefixedTranslationKey()));
     }
 
     public static void registerModBlocks() {
