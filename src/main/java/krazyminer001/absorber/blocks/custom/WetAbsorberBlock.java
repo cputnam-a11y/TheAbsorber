@@ -2,35 +2,31 @@ package krazyminer001.absorber.blocks.custom;
 
 import com.mojang.serialization.MapCodec;
 import krazyminer001.absorber.blocks.ModBlocks;
-import net.minecraft.block.*;
-import net.minecraft.component.ComponentType;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.LeveledCauldronBlock;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.PotionContentsComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.potion.Potion;
 import net.minecraft.potion.Potions;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.entry.RegistryEntryList;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-
-import java.util.List;
-import java.util.Objects;
+import net.minecraft.world.block.WireOrientation;
+import org.jetbrains.annotations.Nullable;
 
 public class WetAbsorberBlock extends Block {
     public static final IntProperty LEVEL = Properties.LEVEL_3;
@@ -57,27 +53,27 @@ public class WetAbsorberBlock extends Block {
     }
 
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (world.isClient) return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        if (world.isClient) return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
         if (player.getStackInHand(hand).getItem() == Items.GLASS_BOTTLE) {
             switch (state.get(LEVEL)) {
                 case 1 -> {
                     player.getStackInHand(hand).decrement(1);
                     world.setBlockState(pos, ModBlocks.ABSORBER.getDefaultState(), 3);
                     player.giveItemStack(Items.POTION.getDefaultStack());
-                    return ItemActionResult.CONSUME_PARTIAL;
+                    return ActionResult.CONSUME;
                 }
                 case 2 -> {
                     player.getStackInHand(hand).decrement(1);
                     world.setBlockState(pos, ModBlocks.FILLED_ABSORBER.getDefaultState().with(LEVEL, 1), 3);
                     player.giveItemStack(Items.POTION.getDefaultStack());
-                    return ItemActionResult.CONSUME_PARTIAL;
+                    return ActionResult.CONSUME;
                 }
                 case 3 -> {
                     player.getStackInHand(hand).decrement(1);
                     world.setBlockState(pos, ModBlocks.FILLED_ABSORBER.getDefaultState().with(LEVEL, 2), 3);
                     player.giveItemStack(Items.POTION.getDefaultStack());
-                    return ItemActionResult.CONSUME_PARTIAL;
+                    return ActionResult.CONSUME;
                 }
             }
         }
@@ -85,26 +81,26 @@ public class WetAbsorberBlock extends Block {
             player.getStackInHand(hand).decrement(1);
             world.setBlockState(pos, ModBlocks.ABSORBER.getDefaultState(), 3);
             player.giveItemStack(Items.WATER_BUCKET.getDefaultStack());
-            return ItemActionResult.CONSUME_PARTIAL;
+            return ActionResult.CONSUME;
         }
         if (player.getStackInHand(hand).getItem() == Items.POTION) {
             if (world.getBlockState(pos).get(LEVEL) == 3) {
-                return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
             }
             PotionContentsComponent effects = player.getStackInHand(hand).get(DataComponentTypes.POTION_CONTENTS);
-            if (effects == null) return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            if (effects == null) return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
             if (effects.potion().isPresent()) {
                 if (effects.potion().get() == Potions.WATER) {
                     player.getStackInHand(hand).decrement(1);
                     player.giveItemStack(Items.GLASS_BOTTLE.getDefaultStack());
                     world.setBlockState(pos, ModBlocks.FILLED_ABSORBER.getDefaultState().with(LEVEL, world.getBlockState(pos).get(LEVEL) + 1), 3);
-                    return ItemActionResult.CONSUME_PARTIAL;
+                    return ActionResult.CONSUME;
                 } else {
-                    return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                    return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
                 }
             }
         }
-        return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
     }
 
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
@@ -150,7 +146,7 @@ public class WetAbsorberBlock extends Block {
     }
 
     @Override
-    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
+    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
         if (world.isReceivingRedstonePower(pos)) {
             if (world.getBlockState(pos.down()).getBlock() == Blocks.CAULDRON) {
                 world.setBlockState(pos.down(), Blocks.WATER_CAULDRON.getDefaultState().with(LeveledCauldronBlock.LEVEL, world.getBlockState(pos).get(LEVEL)), 3);
@@ -174,6 +170,6 @@ public class WetAbsorberBlock extends Block {
             }
         }
 
-        super.neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
+        super.neighborUpdate(state, world, pos, sourceBlock, wireOrientation, notify);
     }
 }

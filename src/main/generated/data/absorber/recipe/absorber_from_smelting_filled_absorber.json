@@ -3,9 +3,7 @@
   "category": "blocks",
   "cookingtime": 200,
   "experience": 0.15,
-  "ingredient": {
-    "item": "absorber:filled_absorber"
-  },
+  "ingredient": "absorber:filled_absorber",
   "result": {
     "id": "absorber:absorber"
   }
